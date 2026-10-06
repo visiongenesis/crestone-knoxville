@@ -1,4 +1,4 @@
-# Crestone Roofing Knoxville site (draft, not deployed)
+# Crestone Roofing Knoxville site (v2, deployed to GitHub Pages, noindex)
 
 Static site. No framework. Every page is built from one template so the header, footer, call bar and noindex tag stay identical everywhere.
 
@@ -10,12 +10,12 @@ site/
   services/ areas/ guides/               built by parts B and C
   assets/site.css                        the only stylesheet (tokens on :root, mobile first)
   assets/site.js                         nav toggle, form focus states, phone-click tracking stub
-  assets/ridge.svg, ridge-dark.svg       roofline art used behind .page-head and .cta-band
+  assets/img/                            16 photos + CREDITS.md
   assets/favicon.svg
   _build/template.html                   page shell: {{title}} {{description}} {{canonical}} {{content}} {{root}} {{bodyclass}}
   _build/build.py                        builder, stdlib only
   _build/pages/                          one fragment per page
-  _build/ridge-inline.html               inline roofline SVG (home hero); paste into a hero if a page needs it
+  _build/gen/gen_pages.py                writes every fragment (all copy lives here)
   _build/phone-icon.html                 phone icon SVG used inside call buttons
   _shots/                                screenshots
   robots.txt (Disallow: /), .nojekyll
@@ -62,17 +62,26 @@ Class kit for inner pages: `.page-head`, `.crumbs`, `.lede`, `.split` + `.aside`
 - **Hours.** `contact.html` has `<!-- HOURS PLACEHOLDER -->`.
 - **Analytics.** `track()` in `assets/site.js` only pushes to `window.dataLayer`. Point it at the real tool later.
 
-## Photo slots
+## Photos (v2, 2026-10-06)
 
-There are no photos on the site, on purpose. Real Knoxville photos go where the comments say: `grep -rn "PHOTO SLOT" _build/pages`. No stock photos, no Colorado job photos presented as Knoxville work.
+16 licensed photos live in `assets/img/` (WebP, max 1800px). Sources, authors and licenses: `assets/img/CREDITS.md`. CC-BY / CC-BY-SA attributions are on `credits.html`, linked in the footer. Pexels photos need no attribution but are listed anyway.
+None of these photos are Crestone jobs. Never caption one as a Knoxville or Crestone project. Swap in real job photos (same filenames) once they exist.
 
-## Honesty rules (every page)
+## Copy lives in one script
 
-No Tennessee license claim or number until the state issues one. No manufacturer certifications (the Colorado company's GAF and Owens Corning status does not transfer to Knoxville). No testimonials. No invented numbers. No stock people. No em-dashes. The "4.7 stars" line is the Colorado Birdeye rating (about 60 reviews) from `research/crestone-public-profile.md` and must say Colorado.
-The Crestone story uses only facts from that same profile. The About page wording ("building it with the Crestone team in Colorado") should be confirmed with Crestone before launch, since the brand and deal terms are still being settled.
+All page copy is in `_build/gen/gen_pages.py`. It writes every fragment in `_build/pages/`. Edit copy there, then run:
+`python3 _build/gen/gen_pages.py && CRESTONE_SITE_URL=https://visiongenesis.github.io/crestone-knoxville/ python3 _build/build.py`
 
-Check before shipping (prints nothing when clean): `grep -rl -e "$(printf '\342\200\224')" -e "licen[s]ed" -e "Master[ ]Elite" .`
+## Hard lines (every page)
+
+1. Never state a Tennessee license exists or print a license number.
+2. Never caption or imply a photo is a Knoxville job.
+3. No customer quotes or review counts beyond "4.7 stars" and "60+ reviews" (Colorado, Birdeye/Google).
+Also: Knoxville is never framed as new (no "now in", "opening", "coming soon", "branch"). No em-dashes. "Not legal advice" appears only in the guide footers.
+
+Check before shipping (prints only guide footers when clean):
+`grep -rl -e "$(printf '\342\200\224')" -e "licensed in Tennessee" -e "as we read" -e "not legal advice" --include=*.html --exclude-dir=_build .`
 
 ## Screenshots
 
-Headless Chrome will not render narrower than 500px, so phone shots go through a 390px iframe. See `_shots/`.
+Headless Chrome will not render narrower than 500px; v2 phone shots are at 500px wide. See `_shots/v2-*`.
