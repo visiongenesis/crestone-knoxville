@@ -1,8 +1,123 @@
-(function(){
-  var t=document.querySelector('.nav-toggle'),n=document.getElementById('site-nav');
-  if(t&&n)t.addEventListener('click',function(){var o=n.classList.toggle('open');t.setAttribute('aria-expanded',o)});
-  window.dataLayer=window.dataLayer||[];
-  function track(e,d){window.dataLayer.push(Object.assign({event:e},d||{}))}
-  document.addEventListener('click',function(e){var a=e.target.closest('a[href^="tel:"],a[href^="sms:"]');if(a)track(a.href.indexOf('sms:')===0?'text_click':'phone_click',{where:a.dataset.where||''})});
-  document.querySelectorAll('form.lead-form').forEach(function(f){f.addEventListener('submit',function(){track('form_submit',{form:f.dataset.form||''})})});
+/* Crestone Roofing Knoxville v3. No libraries. */
+(function () {
+  var dl = window.dataLayer = window.dataLayer || [];
+  function push(o) { try { dl.push(o); } catch (e) {} }
+  function $(s, r) { return (r || document).querySelector(s); }
+  function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+
+  // events: phone_click, text_click, cta_click
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('[data-ev]');
+    if (a) push({ event: a.getAttribute('data-ev') });
+  });
+
+  // nav toggle
+  var hdr = $('.site-header'), mb = $('.menu-btn');
+  if (mb) mb.addEventListener('click', function () {
+    var open = hdr.classList.toggle('nav-open');
+    mb.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && hdr && hdr.classList.contains('nav-open')) { hdr.classList.remove('nav-open'); mb.setAttribute('aria-expanded', 'false'); mb.focus(); }
+  });
+  $$('.nav a').forEach(function (a) { a.addEventListener('click', function () { hdr.classList.remove('nav-open'); if (mb) mb.setAttribute('aria-expanded', 'false'); }); });
+
+  // lead form: honeypot, validation, fetch submit, no-JS fallback is the plain POST
+  $$('.lead-form').forEach(function (f) {
+    f.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var box = f.parentNode, msg = $('.form-msg', box);
+      if (f.company_url && f.company_url.value) return;          // bot: drop silently
+      var ok = true;
+      [['name', 'e-name'], ['phone', 'e-phone'], ['address', 'e-addr']].forEach(function (p) {
+        var el = f[p[0]], er = document.getElementById(p[1]), bad = !el.value.trim();
+        if (p[0] === 'phone' && !bad) { var d = el.value.replace(/\D/g, ''); bad = !(d.length === 10 || (d.length === 11 && d.charAt(0) === '1')); }
+        er.hidden = !bad; el.setAttribute('aria-invalid', bad ? 'true' : 'false');
+        if (bad && ok) { el.focus(); ok = false; }
+      });
+      if (!ok) return;
+      var first = f.name.value.trim().split(/\s+/)[0], phone = f.phone.value.trim();
+      var btn = $('button[type=submit]', f); btn.disabled = true;
+      fetch(f.action, { method: 'POST', body: new FormData(f), headers: { Accept: 'application/json' } })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r; })
+        .then(function () {
+          msg.className = 'form-msg ok';
+          msg.innerHTML = '<strong></strong><p></p>';
+          msg.firstChild.textContent = 'Got it, ' + first + '.';
+          msg.lastChild.textContent = "We'll call you at " + phone + ' to set a time. If the roof is leaking right now, call us instead of waiting.';
+          f.hidden = true; msg.hidden = false; push({ event: 'form_submit' });
+        })
+        .catch(function () {
+          var tel = ($('.header-phone strong') || {}).textContent || 'us';
+          msg.className = 'form-msg bad';
+          msg.textContent = "That didn't go through. Please call or text " + tel + " and we'll take it from there.";
+          msg.hidden = false; btn.disabled = false;
+        });
+    });
+  });
+
+  // see your roof
+  $$('.seeroof').forEach(function (w) {
+    var key = w.getAttribute('data-maps-key'), form = $('.seeroof-form', w), input = $('input', form);
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var q = input.value.trim(); if (!q) { input.focus(); return; }
+      var enc = encodeURIComponent(q);
+      if (key) {
+        var fr = $('.map-frame', w), ifr = document.createElement('iframe');
+        ifr.src = 'https://www.google.com/maps/embed/v1/place?key=' + encodeURIComponent(key) + '&q=' + enc + '&maptype=satellite&zoom=19';
+        ifr.loading = 'lazy'; ifr.title = 'Satellite view of your address'; ifr.referrerPolicy = 'no-referrer-when-downgrade';
+        fr.innerHTML = ''; fr.appendChild(ifr); fr.hidden = false; $('.map-card', w).hidden = true;
+        $('.seeroof-after', w).hidden = false;
+      } else {
+        var gm = 'https://www.google.com/maps/search/?api=1&query=' + enc, lk = $('.seeroof-link', w);
+        if (lk) lk.href = gm;
+        window.open(gm, '_blank', 'noopener');
+        $('.seeroof-note', w).hidden = false; $('.seeroof-after', w).hidden = false;
+      }
+      push({ event: 'see_roof', mode: key ? 'embed' : 'link' });   // never the address
+    });
+  });
+
+  // Ask Crestone: client-side FAQ search. The Ask-X engine can replace [data-askx-slot] later.
+  $$('[data-askx-slot]').forEach(function (w) {
+    var data = null, form = $('.ask-form', w), input = $('input', form), out = $('.ask-results', w), none = $('.ask-nomatch', w);
+    var root = w.getAttribute('data-root') || '';
+    var STOP = 'a an and are as at be but by can do does for from how i if in is it its me my of on or our should so that the their them then there this to us was we what when where which who why will with would you your'.split(' ');
+    function toks(s) { return (s.toLowerCase().match(/[a-z0-9]+/g) || []).filter(function (t) { return STOP.indexOf(t) < 0; }).map(stem); }
+    function stem(t) { return t.length > 4 ? t.replace(/(ing|ed|es|s)$/, '') : t; }
+    function near(a, b) { return a === b || (a.length > 3 && b.length > 3 && (a.indexOf(b) === 0 || b.indexOf(a) === 0)); }
+    function load() {
+      if (data) return Promise.resolve(data);
+      return fetch(w.getAttribute('data-faq-url')).then(function (r) { return r.json(); }).then(function (d) {
+        data = d.map(function (x) { return { x: x, q: toks(x.q), a: toks(x.a) }; }); return data;
+      });
+    }
+    input.addEventListener('focus', function () { load().catch(function () {}); }, { once: true });
+    function score(qt, d) {
+      var s = 0;
+      qt.forEach(function (t) {
+        if (d.q.some(function (u) { return near(t, u); })) s += 2;
+        if (d.a.some(function (u) { return near(t, u); })) s += 1;
+      });
+      return s / Math.max(qt.length, 1);
+    }
+    function ask(q) {
+      var qt = toks(q); if (!qt.length) return;
+      load().then(function (d) {
+        var r = d.map(function (x) { return { x: x.x, s: score(qt, x) }; }).sort(function (a, b) { return b.s - a.s; }).filter(function (r) { return r.s >= 1; }).slice(0, 3);
+        out.innerHTML = ''; none.hidden = r.length > 0;
+        r.forEach(function (h, i) {
+          var el = document.createElement('div'); el.className = 'hit' + (i === 0 ? ' hit--top' : '');
+          var h3 = document.createElement('h3'); h3.textContent = h.x.q;
+          var p = document.createElement('p'); p.textContent = h.x.a;
+          var a = document.createElement('a'); a.href = root + h.x.url; a.textContent = 'Read more';
+          el.appendChild(h3); el.appendChild(p); el.appendChild(a); out.appendChild(el);
+        });
+        push({ event: 'ask_query', q_len: q.length, match: r.length ? r[0].x.id : null });
+      }).catch(function () { none.hidden = false; });
+    }
+    form.addEventListener('submit', function (e) { e.preventDefault(); ask(input.value); });
+    $$('.chip', w).forEach(function (c) { c.addEventListener('click', function () { input.value = c.textContent; ask(c.textContent); }); });
+  });
 })();
