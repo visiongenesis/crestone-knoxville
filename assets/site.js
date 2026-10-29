@@ -1,4 +1,4 @@
-/* Crestone Roofing Knoxville v3. No libraries. */
+/* Crestone Roofing Knoxville v4. No libraries. */
 (function () {
   var dl = window.dataLayer = window.dataLayer || [];
   function push(o) { try { dl.push(o); } catch (e) {} }
@@ -11,16 +11,43 @@
     if (a) push({ event: a.getAttribute('data-ev') });
   });
 
-  // nav toggle
+  // nav: mobile sheet toggle; desktop dropdowns open on hover and :focus-within (CSS), the chevron button
+  // toggles one for click and touch and carries aria-expanded; Escape closes the open menu or the sheet.
   var hdr = $('.site-header'), mb = $('.menu-btn');
+  function closeSheet(focus) {
+    if (hdr && hdr.classList.contains('nav-open')) { hdr.classList.remove('nav-open'); if (mb) { mb.setAttribute('aria-expanded', 'false'); if (focus) mb.focus(); } }
+  }
   if (mb) mb.addEventListener('click', function () {
     var open = hdr.classList.toggle('nav-open');
     mb.setAttribute('aria-expanded', open ? 'true' : 'false');
   });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && hdr && hdr.classList.contains('nav-open')) { hdr.classList.remove('nav-open'); mb.setAttribute('aria-expanded', 'false'); mb.focus(); }
+  function ddSet(li, open) {
+    var b = $('.dd-btn', li);
+    li.classList.toggle('open', open); li.classList.toggle('shut', !open);
+    if (b) b.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  function ddCloseAll(except) { $$('.dd.open').forEach(function (li) { if (li !== except) ddSet(li, false); }); }
+  $$('.dd').forEach(function (li) {
+    var b = $('.dd-btn', li);
+    if (b) b.addEventListener('click', function (e) { e.stopPropagation(); var o = !li.classList.contains('open'); ddCloseAll(li); ddSet(li, o); });
+    li.addEventListener('mouseenter', function () { li.classList.remove('shut'); if (b) b.setAttribute('aria-expanded', 'true'); });
+    li.addEventListener('mouseleave', function () {
+      li.classList.remove('shut');
+      if (b && !li.classList.contains('open') && !li.contains(document.activeElement)) b.setAttribute('aria-expanded', 'false');
+    });
+    li.addEventListener('focusin', function () { if (b && !li.classList.contains('shut')) b.setAttribute('aria-expanded', 'true'); });
+    li.addEventListener('focusout', function (e) {
+      if (!li.contains(e.relatedTarget)) { li.classList.remove('open'); li.classList.remove('shut'); if (b) b.setAttribute('aria-expanded', 'false'); }
+    });
   });
-  $$('.nav a').forEach(function (a) { a.addEventListener('click', function () { hdr.classList.remove('nav-open'); if (mb) mb.setAttribute('aria-expanded', 'false'); }); });
+  document.addEventListener('click', function (e) { if (!(e.target.closest && e.target.closest('.dd'))) ddCloseAll(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    var li = document.activeElement && document.activeElement.closest && document.activeElement.closest('.dd');
+    if (li) { ddSet(li, false); var b = $('.dd-btn', li); if (b) b.focus(); return; }
+    ddCloseAll(); closeSheet(true);
+  });
+  $$('.nav a').forEach(function (a) { a.addEventListener('click', function () { closeSheet(false); }); });
 
   // lead form: honeypot, validation, fetch submit, no-JS fallback is the plain POST
   $$('.lead-form').forEach(function (f) {
