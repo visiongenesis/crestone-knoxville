@@ -390,7 +390,7 @@ ol.values li{margin-bottom:var(--s5)}
 .header-phone strong,.header-cta{white-space:nowrap}
 /* integration pass 2026-10-29: no grid child grows past a phone; trust strip is a grid under 1100 px */
 .hero-copy,.hero-media,.cta-copy,.cta-grid>*,.seeroof>*,.storm-grid>*,.split>*,.links-grid>*,.foot-top>*,.foot-cols>*{min-width:0}
-h1,h2{overflow-wrap:anywhere}
+h1,h2{overflow-wrap:break-word}
 @media (max-width:1099px){.trust-list{display:grid;grid-template-columns:1fr 1fr;overflow:visible;scroll-snap-type:none;gap:16px 12px}.trust-list li{font-size:.875rem}}
 @media (min-width:700px) and (max-width:1099px){.trust-list{grid-template-columns:repeat(3,1fr)}}
 .group-intro,.areas-intro{max-width:68ch}
