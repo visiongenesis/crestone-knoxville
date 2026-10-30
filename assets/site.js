@@ -106,6 +106,23 @@
     });
   });
 
+  // home video: the button is a facade; nothing from YouTube loads until it is pressed, then the
+  // privacy-enhanced (youtube-nocookie) player replaces it in the same 16:9 box. No YouTube script or API.
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('.video-facade');
+    if (!b) return;
+    var id = b.getAttribute('data-video-id') || '';
+    if (!/^[\w-]{11}$/.test(id)) return;
+    var ifr = document.createElement('iframe');
+    ifr.src = 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0';
+    ifr.title = b.getAttribute('data-video-title') || 'Video';
+    ifr.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
+    ifr.setAttribute('allowfullscreen', '');
+    ifr.setAttribute('loading', 'lazy');
+    b.parentNode.replaceChild(ifr, b);
+    ifr.focus();
+  });
+
   // Ask Crestone: client-side FAQ search. The Ask-X engine can replace [data-askx-slot] later.
   $$('[data-askx-slot]').forEach(function (w) {
     var data = null, form = $('.ask-form', w), input = $('input', form), out = $('.ask-results', w), none = $('.ask-nomatch', w);
