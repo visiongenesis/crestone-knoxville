@@ -1,4 +1,4 @@
-/* Crestone Roofing Knoxville v4. No libraries. */
+/* Crestone Roofing Knoxville v6. No libraries. */
 (function () {
   var dl = window.dataLayer = window.dataLayer || [];
   function push(o) { try { dl.push(o); } catch (e) {} }
@@ -49,21 +49,25 @@
   });
   $$('.nav a').forEach(function (a) { a.addEventListener('click', function () { closeSheet(false); }); });
 
-  // lead form: honeypot, validation, fetch submit, no-JS fallback is the plain POST
+  // lead forms (main + the v6 home quick form): honeypot, validation, fetch submit; the message shows in the
+  // form's own box. Error elements are found through each field's aria-describedby, so ids never collide.
+  // No-JS fallback is the plain POST.
   $$('.lead-form').forEach(function (f) {
     f.addEventListener('submit', function (e) {
       e.preventDefault();
-      var box = f.parentNode, msg = $('.form-msg', box);
-      if (f.company_url && f.company_url.value) return;          // bot: drop silently
+      var box = f.parentNode, msg = $('.form-msg', box), el = function (n) { return f.elements[n]; };
+      if (el('company_url') && el('company_url').value) return;          // bot: drop silently
       var ok = true;
-      [['name', 'e-name'], ['phone', 'e-phone'], ['address', 'e-addr']].forEach(function (p) {
-        var el = f[p[0]], er = document.getElementById(p[1]), bad = !el.value.trim();
-        if (p[0] === 'phone' && !bad) { var d = el.value.replace(/\D/g, ''); bad = !(d.length === 10 || (d.length === 11 && d.charAt(0) === '1')); }
-        er.hidden = !bad; el.setAttribute('aria-invalid', bad ? 'true' : 'false');
-        if (bad && ok) { el.focus(); ok = false; }
+      ['name', 'phone', 'address'].forEach(function (n) {
+        var x = el(n); if (!x) return;
+        var er = document.getElementById(x.getAttribute('aria-describedby') || ''), bad = !x.value.trim();
+        if (n === 'phone' && !bad) { var d = x.value.replace(/\D/g, ''); bad = !(d.length === 10 || (d.length === 11 && d.charAt(0) === '1')); }
+        if (er) er.hidden = !bad;
+        x.setAttribute('aria-invalid', bad ? 'true' : 'false');
+        if (bad && ok) { x.focus(); ok = false; }
       });
       if (!ok) return;
-      var first = f.name.value.trim().split(/\s+/)[0], phone = f.phone.value.trim();
+      var first = el('name').value.trim().split(/\s+/)[0], phone = el('phone').value.trim();
       var btn = $('button[type=submit]', f); btn.disabled = true;
       fetch(f.action, { method: 'POST', body: new FormData(f), headers: { Accept: 'application/json' } })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r; })
@@ -72,7 +76,7 @@
           msg.innerHTML = '<strong></strong><p></p>';
           msg.firstChild.textContent = 'Got it, ' + first + '.';
           msg.lastChild.textContent = "We'll call you at " + phone + ' to set a time. If the roof is leaking right now, call us instead of waiting.';
-          f.hidden = true; msg.hidden = false; push({ event: 'form_submit' });
+          f.hidden = true; msg.hidden = false; push({ event: 'form_submit', form: f.getAttribute('data-form') || 'main' });
         })
         .catch(function () {
           var tel = ($('.header-phone strong') || {}).textContent || 'us';
