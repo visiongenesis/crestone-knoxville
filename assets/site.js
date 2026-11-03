@@ -169,3 +169,47 @@
     $$('.chip', w).forEach(function (c) { c.addEventListener('click', function () { input.value = c.textContent; ask(c.textContent); }); });
   });
 })();
+
+// v8 calculator: planning range from the JSON in #calc-data. Same math as the build's check. No payment is ever printed.
+(function () {
+  var form = document.querySelector('[data-calc]');
+  var dataEl = document.getElementById('calc-data');
+  if (!form || !dataEl) return;
+  var D;
+  try { D = JSON.parse(dataEl.textContent); } catch (e) { return; }
+  var res = document.getElementById('calc-result');
+  if (!res) return;
+  var strong = res.querySelector('.calc-range strong');
+  var sq = res.querySelector('.calc-squares');
+  var used = false;
+  function fmt(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function field(name) { return form.elements[name]; }
+  function pick(map, name, dflt) { var f = field(name); var k = f ? f.value : dflt; return map[k] ? map[k] : map[dflt]; }
+  function compute() {
+    var f = field('footprint');
+    var min = f && f.min !== '' ? parseFloat(f.min) : 500;
+    var max = f && f.max !== '' ? parseFloat(f.max) : 8000;
+    var fp = f ? parseFloat(f.value) : NaN;
+    if (isNaN(fp)) fp = D.defaults.footprint;
+    fp = Math.min(max, Math.max(min, fp));
+    var pitch = pick(D.pitch, 'pitch', D.defaults.pitch);
+    var shape = pick(D.shape, 'shape', D.defaults.shape);
+    var layers = pick(D.layers, 'layers', D.defaults.layers);
+    var mat = pick(D.material, 'material', D.defaults.material);
+    var squares = fp * pitch.factor * shape.factor * D.waste / 100;
+    var r = D.round_to || 500;
+    var low = Math.round(squares * (mat.low + layers.add_low) / r) * r;
+    var high = Math.round(squares * (mat.high + layers.add_high) / r) * r;
+    if (strong) strong.textContent = '$' + fmt(low) + ' to $' + fmt(high);
+    if (sq) sq.textContent = 'About ' + Math.round(squares) + ' squares of roof.';
+    res.setAttribute('data-low', String(low));
+    res.setAttribute('data-high', String(high));
+  }
+  function onUse() {
+    compute();
+    if (!used) { used = true; try { (window.dataLayer = window.dataLayer || []).push({ event: 'calc_use' }); } catch (e) {} }
+  }
+  form.addEventListener('input', onUse);
+  form.addEventListener('change', onUse);
+  form.addEventListener('submit', function (e) { e.preventDefault(); onUse(); });
+})();

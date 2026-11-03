@@ -1,3 +1,6 @@
+@font-face{font-family:"Inter";font-style:normal;font-weight:400 600;font-display:swap;src:url(fonts/inter.woff2) format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/poppins-600.woff2) format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:"Poppins";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/poppins-700.woff2) format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
 /* Crestone Roofing Knoxville v4. Tokens per SPEC 6.1 (unchanged from v3). */
 :root{
   --gold:#FBB908;--gold-press:#E0A500;--ink:#0E0F11;--ink-2:#1C1E22;--paper:#FFFFFF;--paper-warm:#F7F4EE;
@@ -303,10 +306,11 @@ input:focus-visible,textarea:focus-visible{outline:3px solid var(--ink);outline-
 .site-footer a{color:var(--on-dark);text-decoration:none}
 .site-footer a:hover{text-decoration:underline}
 .foot-top{display:grid;gap:var(--s6)}
-@media (min-width:900px){.foot-top{grid-template-columns:1fr 2.6fr}}
+@media (min-width:900px){.foot-top{grid-template-columns:1fr}}
+@media (min-width:1200px){.foot-top{grid-template-columns:1fr 3.4fr}}
 .foot-brand img{height:40px;width:auto;margin-bottom:var(--s4)}
 .foot-cols{display:grid;grid-template-columns:1fr 1fr;gap:var(--s5)}
-@media (min-width:900px){.foot-cols{grid-template-columns:repeat(4,1fr)}}
+@media (min-width:900px){.foot-cols{grid-template-columns:repeat(5,minmax(0,1fr));gap:var(--s4)}.fh{font-size:.75rem;letter-spacing:.05em;white-space:nowrap}}
 .fh{font:600 .8125rem/1.4 var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--gold);margin:0 0 var(--s3)}
 .fcol ul{list-style:none;margin:0;padding:0}
 .fcol li{margin-bottom:2px}
@@ -550,3 +554,17 @@ h1,h2{overflow-wrap:break-word}
 .permit-summary dt{font-weight:600;font-size:.875rem;color:var(--muted)}
 .permit-summary dd{margin:0}
 .hero--home .lede a{color:var(--on-dark);font-weight:600;white-space:nowrap}
+
+/* v8b form fixes */
+select{font:inherit;width:100%;min-height:48px;padding:10px 40px 10px 14px;border:1.5px solid #8A9097;border-radius:var(--r-input);background-color:#fff;color:var(--ink);-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'><path d='M1 1.5l6 6 6-6' fill='none' stroke='%230E0F11' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");background-repeat:no-repeat;background-position:right 14px center;background-size:14px 9px}
+select:focus-visible{outline:3px solid var(--ink);outline-offset:1px}
+.field--check{display:flex;align-items:flex-start;gap:10px}
+.field--check input[type=checkbox]{flex:0 0 auto;width:20px;min-height:0;height:20px;margin:2px 0 0;padding:0;accent-color:var(--gold)}
+.field--check label{margin:0;font-weight:400;font-size:1rem;line-height:1.45}
+.calc .field label{display:block;font-weight:600;margin-bottom:6px}
+.calc-result{background:var(--paper-warm);border:1px solid var(--line);border-radius:var(--r-card);padding:var(--s5);margin-top:16px}
+.calc-result .calc-range{font:700 1.6rem/1.2 var(--head,var(--body));margin:0 0 var(--s2)}
+.calc-result p{margin:0 0 var(--s2)}
+.calc-result p:last-child{margin-bottom:0}
+.form-box .form-consent,.form-box .form-consent a{color:var(--ink)}
+.form-box .form-consent{margin:4px 0 var(--s4);font-size:.875rem}
