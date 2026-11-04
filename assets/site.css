@@ -319,10 +319,12 @@ input:focus-visible,textarea:focus-visible{outline:3px solid var(--ink);outline-
 .legal{border-top:1px solid rgba(255,255,255,.12);margin-top:var(--s6);padding-top:var(--s5)}
 
 /* sticky bar */
-.sticky-bar{position:fixed;left:0;right:0;bottom:0;z-index:60;display:grid;grid-template-columns:1fr 1fr 1.15fr;gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:var(--ink);box-shadow:0 -4px 18px rgba(14,15,17,.25)}
+.sticky-bar{position:fixed;left:0;right:0;bottom:0;z-index:60;display:grid;grid-template-columns:.85fr 1.1fr .85fr 1.35fr;gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:var(--ink);box-shadow:0 -4px 18px rgba(14,15,17,.25)}
 .sticky-bar a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:48px;border-radius:var(--r-input);background:var(--ink-2);color:var(--on-dark);text-decoration:none;font:600 .8125rem/1.1 var(--body)}
 .sticky-bar svg{width:22px;height:22px;padding:0;border-radius:0;background:none;color:inherit}
 .sticky-bar .sticky-gold{background:var(--gold);color:var(--ink)}
+.sticky-bar span{text-align:center}   /* v10: four actions (Chat added) */
+@media (max-width:359px){.sticky-bar a{font-size:.6875rem}}
 body{padding-bottom:calc(var(--bar) + env(safe-area-inset-bottom))}
 @media (min-width:900px){.sticky-bar{display:none}body{padding-bottom:0}}
 
