@@ -568,3 +568,6 @@ select:focus-visible{outline:3px solid var(--ink);outline-offset:1px}
 .calc-result p:last-child{margin-bottom:0}
 .form-box .form-consent,.form-box .form-consent a{color:var(--ink)}
 .form-box .form-consent{margin:4px 0 var(--s4);font-size:.875rem}
+
+/* v9 review cards (reviews/ and home) */
+.review-card .stars{display:block;width:100px;height:20px;fill:var(--gold);margin:0 0 var(--s2)}.review-card blockquote p{margin:0}.review-by{color:var(--muted);margin:0}.review-aggregate{font-weight:600;margin:0}.reviews .more{margin-top:var(--s4)}
