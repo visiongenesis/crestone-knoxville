@@ -570,4 +570,4 @@ select:focus-visible{outline:3px solid var(--ink);outline-offset:1px}
 .form-box .form-consent{margin:4px 0 var(--s4);font-size:.875rem}
 
 /* v9 review cards (reviews/ and home) */
-.review-card .stars{display:block;width:100px;height:20px;fill:var(--gold);margin:0 0 var(--s2)}.review-card blockquote p{margin:0}.review-by{color:var(--muted);margin:0}.review-aggregate{font-weight:600;margin:0}.reviews .more{margin-top:var(--s4)}
+.review-card .stars{display:block;width:100px;height:20px;fill:var(--gold);margin:0 0 var(--s2)}.review-card blockquote p{margin:0}.review-by{color:var(--muted);margin:0}.review-rating{font-size:1.5rem;line-height:1.25;font-weight:700;margin:0}.review-rating-count{color:var(--muted);margin:var(--s1) 0 0}.reviews .review-rating{margin-top:var(--s3)}.hero .review-rating{color:var(--on-dark);margin-top:var(--s3)}.hero .review-rating-count{color:var(--on-dark-muted)}.review-cta{margin:var(--s5) 0 0}.hero .review-cta{margin:var(--s4) 0}.reviews .more{margin-top:var(--s4)}
