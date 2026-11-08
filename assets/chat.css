@@ -86,3 +86,15 @@
 .rep-d{font-size:.875rem;color:var(--muted)}
 .rep-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .storms-more{font-weight:600;color:var(--ink)}
+/* v12 storm report contact step */
+.lead-step{display:grid;gap:6px;margin-top:6px}
+.lead-h{font-weight:700;margin:0}
+.lead-l{font-weight:600;font-size:.9rem;margin-top:4px}
+.lead-step input[type=text],.lead-step input[type=tel],.lead-step input[type=email]{width:100%;box-sizing:border-box;min-height:44px;padding:8px 12px;border:1px solid #8A9096;border-radius:var(--r-input);font:400 1rem/1.2 var(--body);color:var(--ink);background:#fff}
+.lead-consent{display:flex;gap:8px;align-items:flex-start;font-size:.9rem;margin:6px 0}
+.lead-consent input{width:22px;height:22px;margin:1px 0 0;flex:none}
+.lead-step .btn{justify-self:start}
+.lead-err:empty{display:none}
+.lead-err{color:var(--err);font-weight:600;margin:0}
+.rep-sent{background:var(--paper-warm);border-left:4px solid var(--gold);padding:8px 12px;margin-bottom:10px}
+.rep-sent p{margin:4px 0}

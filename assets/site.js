@@ -213,3 +213,59 @@
   form.addEventListener('change', onUse);
   form.addEventListener('submit', function (e) { e.preventDefault(); onUse(); });
 })();
+
+// v12 Part D: "Send me this estimate" under the calculator. Posts the five inputs and the contact details to
+// /api/estimate-lead, never the numbers (the server recomputes the range from the same calc data), then says only what
+// really happened: a text only if one went out, the emailed copy, otherwise that we have the details; and the booking link.
+(function () {
+  var f = document.querySelector('[data-est]'), tpl = document.getElementById('est-tpl'), st = document.getElementById('est-status');
+  var calc = document.querySelector('[data-calc]');
+  if (!f || !tpl || !st || !calc || !tpl.content) return;
+  var S = {};
+  Array.prototype.forEach.call(tpl.content.querySelectorAll('[data-k]'), function (n) { S[n.getAttribute('data-k')] = n; });
+  function w(k) { return S[k] ? S[k].textContent : ''; }
+  function line(k, o) {
+    var p = document.createElement('p');
+    p.textContent = w(k).replace(/\{(\w+)\}/g, function (m, x) { return o && o[x] != null ? String(o[x]) : m; });
+    return p;
+  }
+  var err = f.querySelector('.est-err'), btn = f.querySelector('button[type="submit"]');
+  function g(n) { return f.elements[n]; }
+  function inputs() {
+    var e = calc.elements, fp = parseFloat(e.footprint.value);
+    var min = parseFloat(e.footprint.min) || 500, max = parseFloat(e.footprint.max) || 8000;
+    if (isNaN(fp)) fp = parseFloat(e.footprint.defaultValue) || 2000;
+    return { footprint: Math.round(Math.min(max, Math.max(min, fp))), pitch: e.pitch.value, shape: e.shape.value, layers: e.layers.value, material: e.material.value };
+  }
+  f.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var first = g('first').value.trim(), ph = g('phone').value.trim(), em = g('email').value.trim(), d = ph.replace(/\D/g, '');
+    var bad = !first ? ['first', 'bad_first'] : !(d.length === 10 || (d.length === 11 && d.charAt(0) === '1')) ? ['phone', 'bad_phone']
+      : em && !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(em) ? ['email', 'bad_email'] : null;
+    if (bad) { err.textContent = w(bad[1]); g(bad[0]).focus(); return; }
+    err.textContent = ''; btn.disabled = true;
+    st.textContent = ''; st.hidden = false; st.appendChild(line('sending'));
+    var body = { first: first, phone: ph, email: em, consent: g('consent').checked, page: location.pathname, inputs: inputs() };
+    fetch('/api/estimate-lead', { method: 'POST', body: JSON.stringify(body), headers: { Accept: 'application/json', 'Content-Type': 'application/json' } })
+      .then(function (r) { return r.json(); }).catch(function () { return null; })
+      .then(function (j) {
+        btn.disabled = false;
+        if (j && j.error === 'contact') {
+          st.hidden = true; var k = j.field === 'phone' ? 'phone' : j.field === 'email' ? 'email' : 'first';
+          err.textContent = w('bad_' + k); g(k).focus(); return;
+        }
+        st.textContent = '';
+        var L = j && j.ok ? j.lead : null;
+        if (!L || (!L.stored && !L.duplicate)) st.appendChild(line('fail'));
+        else if (L.duplicate) st.appendChild(line('dup'));
+        else {
+          if (L.texted) st.appendChild(line('texted', { masked: L.masked }));
+          if (L.emailed && L.email) st.appendChild(line('emailed', { email: L.email }));
+          if (!L.texted && !(L.emailed && L.email)) st.appendChild(line('kept'));
+        }
+        var p = document.createElement('p'); p.appendChild(S.book.cloneNode(true)); st.appendChild(p);
+        if (L) f.hidden = true;
+        try { (window.dataLayer = window.dataLayer || []).push({ event: 'estimate_lead', ok: !!L, texted: !!(L && L.texted), emailed: !!(L && L.emailed) }); } catch (e) {}
+      });
+  });
+})();

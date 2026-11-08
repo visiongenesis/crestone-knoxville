@@ -1,4 +1,4 @@
-/* Crestone chat and storm blocks (v10). Readable source: _build/src/chat.js in the site repository. */
+/* Crestone chat and storm blocks (v10, v12 lead step). Readable source: _build/src/chat.js in the site repository. */
 (function () {
 'use strict';
 var AI_ANSWERS = false;
@@ -64,6 +64,10 @@ if (!S['r_' + e.type]) return;
 var t = e.hail && e.wind ? S.r_tags : e.hail ? S.r_tag_hail : e.wind ? S.r_tag_wind : '';
 r.text = S['r_' + e.type] + (t ? ', ' + fill(t, { hail: num(e.hail), wind: num(e.wind) }) : '');
 r.where = S.r_covered;
+} else if (e.kind === 'radar') {   // v12: a NOAA radar detection is never "at this spot"
+if (e.mi == null || !e.size) return;
+r.icon = 'radar'; r.text = fill(S.r_radar, { size: num(e.size) });
+r.where = fill(S.r_dist, { mi: Number(e.mi).toFixed(1), dir: e.dir || '' }).trim();
 } else {
 var k = { hail: 'r_hail', gust: 'r_gust', damage: 'r_damage', tornado: 'r_tornado' }[e.type];
 if (!k || e.mi == null) return;
@@ -77,7 +81,7 @@ v.rows = v.rows.slice(0, 12);
 if (all > 12) v.more = fill(S.r_more, { n: all - 12 });
 if (d.level === 'high') { v.level = fill(S.r_level, { level: S.r_high }); v.rule = S.r_rule_high; }
 else if (d.level === 'mid' && all) { v.level = fill(S.r_level, { level: S.r_mid }); v.rule = S.r_rule_mid; }
-else if (d.level === 'none' && !all && !d.partial) { v.level = S.r_none; v.rule = S.r_rule; }
+else if (d.level === 'none' && !all && !d.partial && !d.radar_partial) { v.level = S.r_none; v.rule = S.r_rule; }
 else { v.level = fill(S.r_level, { level: S.r_unknown }); v.rule = S.r_rule; }
 return v;
 }
@@ -118,6 +122,7 @@ ul.appendChild(li);
 });
 ul.hidden = !v.items.length;
 }
+var who = null;   // the contact details typed once in this page view, offered again if the address is retyped
 function reportForm(host, onAppt) {   // the page form is in the HTML; the panel gets a copy from the template
 var f = host.querySelector('.rep-form');
 if (!f) {
@@ -125,16 +130,57 @@ var c = T.repform.cloneNode(true), id = 'rep-' + Math.random().toString(36).slic
 c.querySelector('input').id = id; c.querySelector('label').htmlFor = id; f = c.querySelector('.rep-form');
 while (c.firstChild) host.appendChild(c.firstChild);
 }
-var inp = f.querySelector('input'), b = f.querySelector('button'), out = host.querySelector('.rep-out');
+var inp = f.querySelector('input'), out = host.querySelector('.rep-out');
 f.addEventListener('submit', function (e) {
 e.preventDefault();
 var q = inp.value.trim();
 if (!/^\d{5}$/.test(q) && !(/\d/.test(q) && q.length >= 6)) { out.textContent = S.r_short; return; }
-out.textContent = S.r_checking; b.disabled = true;
+leadStep(out, q, onAppt);
+});
+}
+function leadStep(out, q, onAppt) {
+out.textContent = '';
+var lf = T.leadform.querySelector('form').cloneNode(true), sfx = Math.random().toString(36).slice(2, 7);
+each(lf.querySelectorAll('[data-n]'), function (i) { i.id = 'lead-' + i.getAttribute('data-n') + '-' + sfx; });
+each(lf.querySelectorAll('[data-for]'), function (l) { l.htmlFor = 'lead-' + l.getAttribute('data-for') + '-' + sfx; });
+var get = function (n) { return lf.querySelector('[data-n="' + n + '"]'); }, err = lf.querySelector('.lead-err');
+if (who) { get('first').value = who.first; get('mobile').value = who.phone; get('email').value = who.email; }
+out.appendChild(lf); get('first').focus();
+push({ event: 'storm_lead_step' });
+lf.addEventListener('submit', function (e) {
+e.preventDefault();
+var first = get('first').value.trim(), ph = get('mobile').value.trim(), em = get('email').value.trim(), d = ph.replace(/\D/g, '');
+var bad = !first ? ['first', S.l_bad_first] : !(d.length === 10 || (d.length === 11 && d.charAt(0) === '1')) ? ['mobile', S.l_bad_phone]
+: em && !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(em) ? ['email', S.l_bad_email] : null;
+if (bad) { err.textContent = bad[1]; get(bad[0]).focus(); return; }
+who = { first: first, phone: ph, email: em };
+var body = { q: q, first: first, phone: ph, email: em, consent: get('consent').checked, page: location.pathname };
+out.textContent = ''; out.appendChild(el('p', '', S.r_checking));
+var pre = { name: first, phone: ph }, appt = function (addr) { onAppt(addr, pre); };
+fetch('/api/storm-lead', { method: 'POST', body: JSON.stringify(body), headers: { Accept: 'application/json', 'Content-Type': 'application/json' } })
+.then(function (r) { return r.json(); }).catch(function () { return null; })
+.then(function (d) {
+if (d && d.error === 'contact') { leadStep(out, q, onAppt); return; }
+if (!d || !d.lead) return plainReport(out, q, appt, S.l_send_fail);   // lead not sent: still show the report
+paintReport(out, d, appt);
+leadNote(out, d.lead);
+push({ event: 'storm_lead', ok: d.ok === true, level: d.level, texted: !!d.lead.texted, emailed: !!d.lead.emailed });
+});
+});
+}
+function plainReport(out, q, appt, note) {
 fetch('/api/storm-report', { method: 'POST', body: JSON.stringify({ q: q }), headers: { Accept: 'application/json', 'Content-Type': 'application/json' } })
 .then(function (r) { return r.json(); }).catch(function () { return null; })
-.then(function (d) { b.disabled = false; paintReport(out, d, onAppt); push({ event: 'storm_report', ok: !!(d && d.ok), level: d && d.level }); });
-});
+.then(function (d) { paintReport(out, d, appt); if (note) out.insertBefore(el('p', 'rep-sent', fill(note, {})), out.firstChild); });
+}
+function leadNote(out, L) {
+var box = el('div', 'rep-sent');
+if (L.texted) box.appendChild(el('p', '', fill(S.l_texting, { masked: L.masked })));
+if (L.emailed && L.email) box.appendChild(el('p', '', fill(S.l_emailed, { email: L.email })));
+if (L.duplicate) box.appendChild(el('p', '', S.l_dup));
+else if (!L.stored) box.appendChild(el('p', '', S.l_send_fail));
+if (L.link) { var p = el('p', '', S.l_keep + ' '), a = el('a', '', S.l_open); a.href = L.link; p.appendChild(a); box.appendChild(p); }
+out.insertBefore(box, out.firstChild);
 }
 function paintReport(out, d, onAppt) {
 var v = reportView(d, S);
@@ -237,8 +283,15 @@ fabs.forEach(function (f) { f.setAttribute('aria-expanded', 'false'); });
 if (user) ss('cr-chat-closed', '1');
 if (opener && opener.focus) opener.focus();
 }
-function book(note, addr) {
+function book(note, addr, pre) {
 state.note = typeof note === 'string' ? note : ''; state.step = 2;
+if (pre && pre.name && pre.phone) {   // v12: the storm report already asked for the name and number
+state.name = pre.name; state.first = pre.name.split(/\s+/)[0]; state.phone = pre.phone;
+say(fill(S.b_pre, { first: state.first, phone: pre.phone }));
+if (addr) { state.address = addr; say(addr, 'me'); return day(); }
+say(S.b_addr);
+return field(S.l_addr, 'text', 'street-address', function (a) { if (!a) return say(S.b_addr_bad); state.address = a; say(a, 'me'); day(); });
+}
 say(S.b_name);
 field(S.l_name, 'text', 'name', function (v) {
 if (!v) return say(S.b_name_bad);
@@ -314,7 +367,7 @@ if (lead) w.appendChild(el('p', 'storms-alert', lead));
 w.appendChild(el('p', 'storms-line', S.w_loading));
 var ul = el('ul', 'storms-list'); ul.hidden = true; w.appendChild(ul);
 w.appendChild(el('p', 'chat-small', S.w_src));
-reportForm(w, function (addr) { book(fill(S.s_note, { what: S.r_h, wet: S.s_wet_no }), addr); });
+reportForm(w, function (addr, pre) { book(fill(S.s_note, { what: S.r_h, wet: S.s_wet_no }), addr, pre); });
 say('', 'bot', w);
 storms().then(function (d) { paintStorms(w, d); });
 }
@@ -386,7 +439,7 @@ f.addEventListener('keydown', function (e) { if (e.key === ' ') { e.preventDefau
 var blocks = document.querySelectorAll('[data-storms]');
 if (blocks.length) storms().then(function (d) { each(blocks, function (w) { paintStorms(w, d); }); });
 each(document.querySelectorAll('[data-storm-check]'), function (h) {
-reportForm(h, function (addr) { open('report', null, function () { book(fill(S.s_note, { what: S.r_h, wet: S.s_wet_no }), addr); }); });
+reportForm(h, function (addr, pre) { open('report', null, function () { book(fill(S.s_note, { what: S.r_h, wet: S.s_wet_no }), addr, pre); }); });
 });
 setTimeout(function () {
 storms().then(function (d) {
