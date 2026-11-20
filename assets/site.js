@@ -201,7 +201,7 @@
     var low = Math.round(squares * (mat.low + layers.add_low) / r) * r;
     var high = Math.round(squares * (mat.high + layers.add_high) / r) * r;
     if (strong) strong.textContent = '$' + fmt(low) + ' to $' + fmt(high);
-    if (sq) sq.textContent = 'About ' + Math.round(squares) + ' squares of roof.';
+    if (sq) sq.textContent = 'About ' + Math.round(squares) + ' roofing squares (100 square feet each).';
     res.setAttribute('data-low', String(low));
     res.setAttribute('data-high', String(high));
   }
