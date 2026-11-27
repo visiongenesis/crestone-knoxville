@@ -89,3 +89,33 @@
 .reference-detail>.sec{padding:24px 0 0}
 .reference-detail .wrap{padding:0}
 @media(min-width:900px){.hero-bottom>span{margin-left:40px}}
+
+/* November 27: clearer pictures, fewer competing offers, a more personal process. */
+.home-hero-media::after{background:linear-gradient(90deg,rgba(7,13,16,.79),rgba(7,13,16,.64) 39%,rgba(7,13,16,.05) 83%)}
+.home-hero h1{font-size:clamp(2.5rem,4.2vw,3.7rem);max-width:850px;text-wrap:balance}
+.home-hero .lede{font-size:1.3rem;line-height:1.5}
+.home-why{background:#fff}
+.home-why h2{margin-bottom:38px}
+.why-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:44px}
+.why-grid .ico{width:64px;height:64px;color:#a77700;stroke-width:1.4;margin-bottom:16px}
+.why-grid h3{font-size:1.25rem;margin-bottom:12px}
+.why-grid p{margin:0;font-size:1.0625rem;line-height:1.65}
+.process-layout{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:70px;align-items:center}
+.process-photo{margin:0;align-self:stretch}
+.process-photo img{width:100%;height:100%;max-height:760px;object-fit:cover;object-position:center;border-radius:5px}
+.process-layout .process-grid{grid-template-columns:1fr;gap:24px}
+.process-layout .process-grid li{padding:0 0 0 64px;border:0}
+.process-layout .process-grid li::before{position:absolute;left:0;top:0;display:grid;place-items:center;width:42px;height:42px;background:var(--gold);color:#11171b;border-radius:50%;font-size:1.125rem}
+.process-layout .process-grid h3{font-size:1.2rem;margin-bottom:7px}
+.inspection-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:70px}
+.inspection-grid p{font-size:1.125rem;line-height:1.7}
+@media(max-width:1099px){.process-layout,.inspection-grid{gap:36px}.why-grid{gap:28px}}
+@media(max-width:699px){.home-hero-media::after{background:linear-gradient(90deg,rgba(7,13,16,.8),rgba(7,13,16,.54))}.home-hero h1{font-size:2.55rem;max-width:520px;text-wrap:balance}.home-hero .lede{font-size:1.125rem}.why-grid,.process-layout,.inspection-grid{grid-template-columns:1fr;gap:32px}.why-grid{gap:30px}.process-photo{max-width:440px}.process-photo img{aspect-ratio:4/5;height:auto;max-height:520px;object-position:center 32%}.process-layout .process-grid{gap:28px}.process-layout .process-grid li{padding-left:58px}.process-layout .process-grid li::before{margin:0}.home-process h2{margin-bottom:32px}.inspection-grid p{font-size:1.0625rem}}
+
+/* Keep inspection photography about the roof and drone, with the operator incidental. */
+.process-photo{align-self:center}
+.process-photo img{height:auto;max-height:none;aspect-ratio:3/2;object-fit:contain}
+@media(max-width:699px){.process-photo{max-width:none}.process-photo img{aspect-ratio:3/2;max-height:none;object-fit:contain}}
+
+/* The real chimney close-up uses the masonry and cap as its focal point. */
+.home-services img[data-photo="J54"],.hero--interior img[data-photo="J54"],.hero--full img[data-photo="J54"]{object-position:center top}

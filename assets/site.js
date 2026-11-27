@@ -53,23 +53,29 @@
   // form's own box. Error elements are found through each field's aria-describedby, so ids never collide.
   // No-JS fallback is the plain POST.
   $$('.lead-form').forEach(function (f) {
+    f.noValidate = true; // custom accessible errors when JavaScript is available
     f.addEventListener('submit', function (e) {
       e.preventDefault();
       var box = f.parentNode, msg = $('.form-msg', box), el = function (n) { return f.elements[n]; };
       if (el('company_url') && el('company_url').value) return;          // bot: drop silently
       var ok = true;
-      ['name', 'phone', 'address'].forEach(function (n) {
+      ['first_name', 'last_name', 'email', 'phone', 'address', 'consent_contact'].forEach(function (n) {
         var x = el(n); if (!x) return;
-        var er = document.getElementById(x.getAttribute('aria-describedby') || ''), bad = !x.value.trim();
+        var er = document.getElementById(x.getAttribute('aria-describedby') || ''), bad = x.type === 'checkbox' ? !x.checked : !x.value.trim();
+        if (n === 'email' && !bad) bad = !x.validity.valid;
         if (n === 'phone' && !bad) { var d = x.value.replace(/\D/g, ''); bad = !(d.length === 10 || (d.length === 11 && d.charAt(0) === '1')); }
         if (er) er.hidden = !bad;
         x.setAttribute('aria-invalid', bad ? 'true' : 'false');
         if (bad && ok) { x.focus(); ok = false; }
       });
       if (!ok) return;
-      var first = el('name').value.trim().split(/\s+/)[0], phone = el('phone').value.trim();
+      var first = el('first_name').value.trim(), phone = el('phone').value.trim();
+      var data = new FormData(f);
+      data.set('name', first + ' ' + el('last_name').value.trim());
+      data.set('consent_text', 'yes');
+      data.set('consent_call', 'yes');
       var btn = $('button[type=submit]', f); btn.disabled = true;
-      fetch(f.action, { method: 'POST', body: new FormData(f), headers: { Accept: 'application/json' } })
+      fetch(f.action, { method: 'POST', body: data, headers: { Accept: 'application/json' } })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r; })
         .then(function () {
           msg.className = 'form-msg ok';
