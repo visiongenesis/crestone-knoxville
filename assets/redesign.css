@@ -119,3 +119,29 @@
 
 /* The real chimney close-up uses the masonry and cap as its focal point. */
 .home-services img[data-photo="J54"],.hero--interior img[data-photo="J54"],.hero--full img[data-photo="J54"]{object-position:center top}
+
+/* Roof replacement: a connected sequence with an icon for each stage. */
+.flow.flow--timeline{display:grid;grid-template-columns:1fr;gap:0;margin:28px 0 32px;padding:0;list-style:none}
+.flow--timeline li{position:relative;display:flex;align-items:center;gap:18px;min-height:72px;margin:0;padding:0 0 18px;border:0;border-radius:0;background:transparent;font-weight:600}
+.flow--timeline li::before{content:none}
+.flow--timeline li:not(:last-child)::after{content:"";position:absolute;left:22px;top:46px;bottom:0;width:1px;background:#c4b17b}
+.flow--timeline .flow-icon{position:relative;z-index:1;display:grid;place-items:center;flex:0 0 46px;width:46px;height:46px;border:1px solid #c4b17b;border-radius:50%;background:#fff;color:#625126}
+.flow--timeline .flow-icon svg{width:23px;height:23px}
+@media(min-width:1000px){.flow.flow--timeline{grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.flow--timeline li{display:flex;align-items:flex-start;flex-direction:column;gap:12px;min-height:0;padding:0 8px 0 0;font-size:.9375rem}.flow--timeline li:not(:last-child)::after{left:46px;top:22px;right:-12px;bottom:auto;width:auto;height:1px}}
+
+/* Put each picture beside the service it explains. */
+.process-photo img{aspect-ratio:4/5;object-fit:cover;object-position:center}
+.inspection-photo{margin:28px 0 0}
+.inspection-photo img{display:block;width:100%;height:auto;border-radius:5px}
+.inspection-record{padding-left:1.25em;margin:24px 0;font-size:1.0625rem;line-height:1.8}
+.photo:has(>img[data-photo="A9"]),.card-media:has(>img[data-photo="A9"]){overflow:hidden;border-radius:5px}
+.photo img[data-photo="A9"],.card-media img[data-photo="A9"]{transform:rotate(-6.5deg) scale(1.22)}
+.band .wrap:has(>img[data-photo="A9"]){overflow:hidden;border-radius:5px}
+.band img[data-photo="A9"]{transform:rotate(-6.5deg) scale(1.32)}
+
+.flow--timeline h3{font-size:1rem;line-height:1.35;margin:0 0 8px}
+.flow--timeline li p{font-weight:400;font-size:.9375rem;line-height:1.55;margin:0}
+
+.flow-sec .wrap{width:100%;min-width:0}
+.flow--timeline,.flow--timeline li,.flow--timeline li>div{min-width:0}
+@media(max-width:999px){.flow-sec h2{max-width:16ch;white-space:normal}.flow--timeline li>div{flex:1 1 0}}
